@@ -8,19 +8,25 @@ import {
   Post,
   Put,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { Note } from '@prisma/client';
+import { CreateNoteDto } from './dto/create-note.dto';
+import { SearchNotesDto } from './dto/search-note.dto';
+import { UpdateNoteDto } from './dto/update-note.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Notes')
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Post()
-  create(
-    @Body() noteData: { title: string; text: string; color: string },
-  ): Promise<Note> {
-    return this.notesService.create(noteData);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  create(@Body() createNoteDto: CreateNoteDto) {
+    return this.notesService.create(createNoteDto);
   }
 
   @Get()
@@ -29,8 +35,9 @@ export class NotesController {
   }
 
   @Get('search')
-  async search(@Query('q') query: string): Promise<Note[]> {
-    return this.notesService.search(query);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  searchNote(@Query() searchNotesDto: SearchNotesDto) {
+    return this.notesService.search(searchNotesDto);
   }
 
   @Get(':id')
@@ -39,11 +46,9 @@ export class NotesController {
   }
 
   @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() noteData: { title: string; text: string; color: string },
-  ): Promise<Note> {
-    return this.notesService.update(id, noteData);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  update(@Param('id') id: string, @Body() updateNoteDto: UpdateNoteDto) {
+    return this.notesService.update(id, updateNoteDto);
   }
 
   @Delete(':id')
